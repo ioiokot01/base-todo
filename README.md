@@ -1,5 +1,10 @@
 # Onchain To-Do
 
+[![CI](https://github.com/ioiokot01/base-todo/actions/workflows/ci.yml/badge.svg)](https://github.com/ioiokot01/base-todo/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Solidity](https://img.shields.io/badge/Solidity-0.8.24-363636.svg)
+![Chain](https://img.shields.io/badge/Base-Sepolia-0052ff.svg)
+
 A personal **on-chain to-do list** for the [Base](https://base.org) ecosystem.
 Every wallet has its own independent list and can add, edit, toggle, and delete
 tasks — all stored on-chain.
