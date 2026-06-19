@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Onchain To-Do · Base</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1>✅ Onchain To-Do</h1>
+        <p class="subtitle">Your personal task list, stored on Base.</p>
+        <button id="connectBtn" class="btn">Connect Wallet</button>
+        <p id="account" class="account hidden"></p>
+      </header>
+
+      <section class="compose">
+        <input
+          id="taskInput"
+          type="text"
+          maxlength="256"
+          placeholder="What needs doing?"
+          disabled
+        />
+        <button id="addBtn" class="btn" disabled>Add</button>
+      </section>
+
+      <p id="status" class="status"></p>
+
+      <section class="list-section">
+        <div class="list-head">
+          <h2>Tasks <span id="counts" class="counts"></span></h2>
+          <button id="refreshBtn" class="btn btn-ghost" disabled>Refresh</button>
+        </div>
+        <ul id="list" class="list"></ul>
+        <p id="empty" class="empty">No tasks yet — add your first one above!</p>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
