@@ -160,4 +160,47 @@ describe("TodoList", function () {
       );
     });
   });
+
+  describe("State integrity", function () {
+    it("editing preserves the task's id and done state", async function () {
+      const { todo, alice } = await deploy();
+      await todo.connect(alice).addTask("original");
+      await todo.connect(alice).toggleTask(0);
+      await todo.connect(alice).editTask(0, "edited");
+
+      const task = (await todo.getTasks(alice.address))[0];
+      expect(task.id).to.equal(0n);
+      expect(task.text).to.equal("edited");
+      expect(task.done).to.equal(true);
+    });
+
+    it("toggling one task does not affect the others", async function () {
+      const { todo, alice } = await deploy();
+      await todo.connect(alice).addTask("a");
+      await todo.connect(alice).addTask("b");
+      await todo.connect(alice).toggleTask(0);
+
+      const tasks = await todo.getTasks(alice.address);
+      expect(tasks[0].done).to.equal(true);
+      expect(tasks[1].done).to.equal(false);
+    });
+
+    it("keeps assigning fresh ids even after deletions", async function () {
+      const { todo, alice } = await deploy();
+      await todo.connect(alice).addTask("a"); // id 0
+      await todo.connect(alice).addTask("b"); // id 1
+      await todo.connect(alice).deleteTask(0);
+      await todo.connect(alice).addTask("c"); // id 2 (ids are never reused)
+
+      const ids = (await todo.getTasks(alice.address)).map((t) => t.id);
+      expect(ids).to.include(2n);
+      expect(ids).to.not.include(0n); // id 0 was deleted and never reused
+    });
+
+    it("reports zero tasks for an address that never added any", async function () {
+      const { todo, bob } = await deploy();
+      expect(await todo.taskCount(bob.address)).to.equal(0n);
+      expect(await todo.getTasks(bob.address)).to.have.lengthOf(0);
+    });
+  });
 });
