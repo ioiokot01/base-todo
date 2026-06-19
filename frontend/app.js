@@ -24,6 +24,8 @@ const ABI = [
 // ---------------------------------------------------------------------------
 
 let provider, signer, contract, account;
+let currentTasks = []; // last loaded tasks (original on-chain order)
+let filter = "all"; // "all" | "active" | "done"
 
 const els = {
   connectBtn: document.getElementById("connectBtn"),
@@ -35,6 +37,7 @@ const els = {
   list: document.getElementById("list"),
   empty: document.getElementById("empty"),
   counts: document.getElementById("counts"),
+  filters: document.getElementById("filters"),
 };
 
 // ---------------------------------------------------------------------------
@@ -82,6 +85,7 @@ async function connect() {
     els.taskInput.disabled = false;
     els.addBtn.disabled = false;
     els.refreshBtn.disabled = false;
+    els.filters.classList.remove("hidden");
 
     await refresh();
 
@@ -103,28 +107,45 @@ async function refresh() {
   if (!contract) return;
   setStatus("Loading…");
   try {
-    const tasks = await contract.getMyTasks();
-    renderList(tasks);
+    currentTasks = await contract.getMyTasks();
+    renderList();
     setStatus("");
   } catch (err) {
     setStatus(err.shortMessage || err.message || "Failed to load.", "error");
   }
 }
 
-function renderList(tasks) {
+function renderList() {
   els.list.innerHTML = "";
+  const tasks = currentTasks;
   const done = tasks.filter((t) => t.done).length;
   els.counts.textContent = tasks.length
     ? `(${done}/${tasks.length} done)`
     : "";
 
+  // Keep each task's original on-chain index so toggle/edit/delete stay correct.
+  const visible = tasks
+    .map((task, index) => ({ task, index }))
+    .filter(({ task }) => {
+      if (filter === "active") return !task.done;
+      if (filter === "done") return task.done;
+      return true;
+    });
+
   if (tasks.length === 0) {
+    els.empty.textContent = "No tasks yet — add your first one above!";
+    els.empty.classList.remove("hidden");
+    return;
+  }
+  if (visible.length === 0) {
+    els.empty.textContent =
+      filter === "done" ? "No completed tasks yet." : "Nothing active — all done! 🎉";
     els.empty.classList.remove("hidden");
     return;
   }
   els.empty.classList.add("hidden");
 
-  tasks.forEach((task, index) => {
+  visible.forEach(({ task, index }) => {
     const li = document.createElement("li");
     li.className = "task" + (task.done ? " done" : "");
 
@@ -241,6 +262,17 @@ els.addBtn.addEventListener("click", addTask);
 els.refreshBtn.addEventListener("click", refresh);
 els.taskInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") addTask();
+});
+
+// Filter tabs: re-render the cached tasks without a re-fetch.
+els.filters.querySelectorAll(".filter").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    filter = btn.dataset.filter;
+    els.filters
+      .querySelectorAll(".filter")
+      .forEach((b) => b.classList.toggle("active", b === btn));
+    renderList();
+  });
 });
 
 if (window.ethereum) {
